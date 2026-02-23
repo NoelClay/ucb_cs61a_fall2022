@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # [Fix] v3 -> v4 업데이트
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -39,15 +39,19 @@ jobs:
           bundler-cache: true
           working-directory: .
 
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5  # [Add] 페이지 설정 자동화 추가
+
       - name: Build Jekyll site
         run: |
           cd docs
-          bundle exec jekyll build --baseurl "${{ github.event.repository.name }}"
+          bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
 
       - name: Upload Jekyll build artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3  # [Fix] v2 -> v3 업데이트
         with:
           path: docs/_site
 
@@ -61,4 +65,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4  # [Fix] v2 -> v4 업데이트
