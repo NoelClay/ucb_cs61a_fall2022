@@ -34,7 +34,7 @@ title: "프로그램 구성하기 - 한국어 번역판"
 - 재귀 (Recursion)
 - 함수의 구성 (Function Composition)
 
-[**1장 상세 보기**]({% link chapter1.md %})
+[**1장 상세 보기**](chapter1.html)
 
 ---
 
@@ -49,7 +49,7 @@ title: "프로그램 구성하기 - 한국어 번역판"
 - 다형성 (Polymorphism)
 - 상속과 합성 (Inheritance and Composition)
 
-[**2장 상세 보기**]({% link chapter2.md %})
+[**2장 상세 보기**](chapter2.html)
 
 ---
 
@@ -63,7 +63,7 @@ title: "프로그램 구성하기 - 한국어 번역판"
 - 계산 모델 (Computation Models)
 - 인터프리터 작성 (Scheme Interpreter)
 
-[**3장 상세 보기**]({% link chapter3.md %})
+[**3장 상세 보기**](chapter3.html)
 
 ---
 
@@ -76,7 +76,7 @@ title: "프로그램 구성하기 - 한국어 번역판"
 - 분산 컴퓨팅 소개 (Introduction to Distributed Computing)
 - SQL을 통한 데이터 조회 (Querying with SQL)
 
-[**4장 상세 보기**]({% link chapter4.md %})
+[**4장 상세 보기**](chapter4.html)
 
 ---
 
