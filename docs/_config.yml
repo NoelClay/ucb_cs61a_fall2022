@@ -1,0 +1,23 @@
+title: "프로그램 구성하기 - 한국어 번역판"
+description: "UC Berkeley CS61A 교과서 'Composing Programs'의 한국어 번역"
+theme: jekyll-theme-minimal
+lang: ko
+
+# GitHub Pages 설정
+repository: NoelClay/ucb_cs61a_fall2022
+github_url: https://github.com/NoelClay/ucb_cs61a_fall2022
+url: https://noelclay.github.io/ucb_cs61a_fall2022
+
+# 한국어 설정
+locale: ko_KR
+timezone: Asia/Seoul
+
+# 마크다운 설정
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: true
+
+# 플러그인
+plugins:
+  - jekyll-feed
