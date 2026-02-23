@@ -7,7 +7,7 @@ theme: jekyll-theme-minimal
 remote_theme: pages-themes/minimal@v0.2.0
 
 # 기본 설정
-url: "https://noelclay.github.io/ucb_cs61a_fall2022"
+url: "https://noelclay.github.io"
 baseurl: "/ucb_cs61a_fall2022"
 
 # GitHub 설정
