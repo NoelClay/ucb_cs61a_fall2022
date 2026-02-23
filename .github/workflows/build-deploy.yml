@@ -49,6 +49,7 @@ jobs:
           bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
+          PAGES_REPO_NWO: ${{ github.repository }}  # ✅ 이 줄을 추가 (저장소 이름 주입)
 
       - name: Upload Jekyll build artifact
         uses: actions/upload-pages-artifact@v3  # [Fix] v2 -> v3 업데이트
