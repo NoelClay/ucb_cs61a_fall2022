@@ -1,308 +1,633 @@
 ---
 layout: default
-title: "1장: 함수를 통한 추상화"
+title: "제1장: 함수를 통한 추상화"
 ---
 
-# 1장: 함수를 통한 추상화
+# 제1장: 함수를 통한 추상화
+## Building Abstractions with Functions
 
-## 개요
-
-프로그래밍의 기초는 **추상화(Abstraction)**입니다. 복잡한 계산 과정을 작은 단위로 나누고, 각 단위에 이름을 붙여 재사용함으로써 복잡한 문제를 해결할 수 있습니다.
-
-이 장에서는 **함수(Function)**라는 도구를 사용하여 계산을 어떻게 조직화하는지 배웁니다.
+> 이 장은 프로그래밍의 가장 기본적인 아이디어들을 소개합니다: **표현식(Expressions)**, **선언(Statements)**, **함수(Functions)**, 그리고 **제어(Control)**
 
 ---
 
-## 📌 1.1장: 프로그래밍의 요소들
+## 1.1 시작하기(Getting Started)
 
-### 핵심 개념
+### Python에서 프로그래밍하기
 
-프로그래밍 언어는 세 가지 메커니즘을 제공합니다:
+Python이 이 교과서의 언어로 선택된 이유는 무엇일까요?
 
-1. **원시적 표현식(Primitive Expressions)**
-   - 언어가 제공하는 가장 간단한 개체들
-   - 예: 숫자 `2`, 문자 `"hello"`
+- **가독성**: Python은 인간이 읽을 수 있도록 설계되었습니다. Python 커뮤니티는 "아름다움, 단순함, 명시성"이 "복잡성, 복잡함, 암시성"보다 낫다는 **젠(Zen) 원칙**을 따릅니다.
 
-2. **조합 수단(Means of Combination)**
-   - 간단한 개체들을 합쳐서 복잡한 개체를 만드는 방법
-   - 예: 산술 연산 `2 + 3`, 함수 호출
+- **유연성**: Python은 절차형, 함수형, 객체지향 프로그래밍 패러다임을 모두 지원합니다.
 
-3. **추상 수단(Means of Abstraction)**
-   - 복잡한 개체에 이름을 붙여 단순한 단위로 다루는 방법
-   - 예: 함수 정의
+- **실용성**: Python은 학계와 산업계 모두에서 광범위하게 사용됩니다.
 
-### 함수 호출
+### 대화형 세션(Interactive Sessions)
+
+Python 3 인터프리터는 대화형 셸을 제공합니다:
 
 ```python
-# 함수 호출의 기본 형태
-max(5, 3)  # 5를 반환
+>>> 2 + 2
+4
+>>> 2 - 1
+1
+```
 
-# 중첩된 함수 호출
-max(3, min(5, 7))  # 5를 반환
+`>>>` 프롬프트는 Python이 당신의 입력을 기다리고 있다는 뜻입니다. 각 표현식을 평가한 후 결과를 출력합니다.
+
+### 첫 번째 예제: Shakespeare 텍스트 분석
+
+다음은 인터넷에서 Shakespeare의 글을 다운로드한 후, 회문(palindrome)인 6자리 단어를 찾는 간단한 프로그램입니다:
+
+```python
+from urllib.request import urlopen
+
+shakespeare = urlopen('http://composingprograms.com/shakespeare.txt')
+words = set(shakespeare.read().decode().split())
+
+# 6자리이고 회문인 단어 찾기
+[w for w in words if len(w) == 6 and w == w[::-1]]
+```
+
+이 프로그램은 여러 **프로그래밍의 기초 개념**을 보여줍니다:
+
+1. **함수(Functions)**: `urlopen()`은 URL에서 데이터를 가져오는 복잡한 작업을 단순한 호출로 캡슐화합니다.
+2. **객체(Objects)**: `set` 컬렉션과 `decode()` 메서드는 데이터를 조작합니다.
+3. **리스트 컴프리헨션**: 필터링 로직을 간결하게 표현합니다.
+
+### 디버깅(Errors and Debugging)
+
+프로그래밍의 현실적 측면 중 하나는 **디버깅**입니다. 좋은 프로그래머들이 따르는 네 가지 전략이 있습니다:
+
+1. **모듈식으로 테스트하기**: 프로그램의 작은 부분을 점진적으로 테스트합니다.
+2. **오류 격리하기**: 문제를 특정 코드 조각으로 좁힙니다.
+3. **가정 검증하기**: 변수 값과 함수 동작에 대한 기본 가정을 확인합니다.
+4. **다른 사람에게 물어보기**: 다른 프로그래머와 협력하면 새로운 관점을 얻을 수 있습니다.
+
+---
+
+## 1.2 프로그래밍의 요소들(Elements of Programming)
+
+모든 강력한 언어는 세 가지 메커니즘을 갖추고 있습니다:
+
+1. **기본 표현식(Primitive Expressions)**: 언어가 제공하는 가장 간단한 개체들
+2. **결합 수단(Means of Combination)**: 간단한 것들을 합쳐 더 복잡한 것을 만드는 방법
+3. **추상 수단(Means of Abstraction)**: 복합 개체에 이름을 붙여 단위로 다루는 방법
+
+### 표현식(Expressions)
+
+기본 표현식은 숫자입니다:
+
+```python
+2
+3.0
+5 + (3 * 4 + (2 + (1 + 1))))
+```
+
+이러한 수치 표현식은 파이썬 인터프리터에 의해 계산되어 숫자 값으로 평가됩니다.
+
+표현식은 **연산자(Operators)**를 통해 결합될 수 있습니다:
+
+```python
+2.0 * 3  # 곱셈
+3 / 2    # 부동소수점 나눗셈
+3 // 2   # 정수 나눗셈
+3 ** 2   # 지수
+```
+
+### 호출 표현식(Call Expressions)
+
+가장 중요한 복합 표현식 유형은 **호출 표현식(Call Expression)**입니다. 이는 함수를 인수들에 적용하는 방법입니다:
+
+```python
+max(7.5, 9.5)        # 9.5
+min(1, -2, 3, -5)    # -5
+abs(-5)              # 5
+```
+
+호출 표현식의 구조는:
+
+```
+  max(7.5, 9.5)
+     ^     ^    ^
+  operator arguments
+```
+
+**중요한 개념**: "연산자"는 호출할 함수입니다. "인수(Arguments)"는 함수에 전달되는 값들입니다.
+
+호출 표현식은 **중첩될 수 있습니다**:
+
+```python
+max(3, min(5, 7))         # 5를 반환
+abs(max(-1, -2))          # 1을 반환
+```
+
+### 라이브러리 함수 임포트(Importing Library Functions)
+
+Python의 광범위한 기능은 여러 모듈로 조직화되어 있습니다. 표준 라이브러리의 함수를 사용하려면 `import` 문을 사용합니다:
+
+```python
+from math import sqrt
+sqrt(256)              # 16.0
+
+from operator import add
+add(1, 2)              # 3
+```
+
+### 이름과 환경(Names and the Environment)
+
+프로그래밍 언어의 관리 가능한 특징은 **변수를 사용하여 계산 결과에 이름을 붙이는 능력**입니다:
+
+```python
+radius = 10
+2 * 3.14159 * radius   # 반지름이 10인 원의 둘레
+```
+
+할당 문(Assignment Statement)에 의해 이름(변수명)이 값과 연결됩니다. 이렇게 저장된 이름-값 쌍들의 메모리를 **환경(Environment)**이라고 합니다.
+
+**다중 할당(Multiple Assignment)**:
+
+```python
+area, circumference = 3.14159 * radius ** 2, 2 * 3.14159 * radius
+```
+
+### 표현식 평가(Evaluating Nested Expressions)
+
+표현식을 평가할 때 Python은 다음 규칙을 따릅니다:
+
+1. **재귀적 평가**: 복합 표현식을 평가하려면 먼저 부분식들을 평가합니다.
+2. **함수 적용**: 연산자 함수를 인수 값들에 적용합니다.
+
+예시:
+
+```python
+2 + 3 * 4 + 5    # 다음과 같이 평가됨:
+# = 2 + (3 * 4) + 5     (곱셈 우선)
+# = 2 + 12 + 5
+# = 19
+```
+
+### 순수 함수 vs 비순수 함수(Pure Functions vs Non-Pure Functions)
+
+**순수 함수(Pure Functions)**:
+- 부작용(side effects)이 없습니다
+- 동일한 입력에 대해 항상 동일한 출력을 반환합니다
+- 예: `abs()`, `max()`, `sqrt()`
+
+```python
+abs(-5)    # 항상 5를 반환
+```
+
+**비순수 함수(Non-Pure Functions)**:
+- 반환값 외에 추가 효과를 가집니다
+- 예: `print()` 함수는 값을 표시하면서 `None`을 반환합니다
+
+```python
+print(1)     # None을 반환하면서 "1"을 화면에 출력
+```
+
+**중요**: 비순수 함수의 반환값을 할당하면 안 됩니다:
+
+```python
+x = print(3)  # x는 None이 됩니다!
 ```
 
 ---
 
-## 📌 1.2장: 데이터 정의하기
+## 1.3 새로운 함수 정의하기(Defining New Functions)
 
-### 함수 정의
-
-함수를 정의하면 계산을 추상화할 수 있습니다.
+**함수 정의**를 통해 새로운 계산 단위를 만들 수 있습니다:
 
 ```python
-# 함수 정의
+def square(x):
+    return x * x
+```
+
+함수 정의 문법:
+
+```
+def <name>(<formal parameters>):
+    return <return expression>
+```
+
+함수를 정의한 후 호출할 수 있습니다:
+
+```python
+square(3)      # 9
+square(4)      # 16
+```
+
+### 환경 모델(Environment Model)
+
+함수 호출 시 새로운 **프레임(Frame)**이 생성됩니다:
+
+```python
 def square(x):
     return x * x
 
-# 함수 사용
-square(5)  # 25를 반환
-```
-
-### 매개변수와 인자
-
-- **매개변수(Parameter)**: 함수 정의에서 사용되는 이름
-- **인자(Argument)**: 함수 호출할 때 전달하는 실제 값
-
-```python
 def sum_of_squares(x, y):
     return square(x) + square(y)
 
-sum_of_squares(3, 4)  # 9 + 16 = 25를 반환
+sum_of_squares(3, 4)  # 25를 반환
 ```
 
----
+평가 과정:
+1. `sum_of_squares` 호출 → 로컬 프레임 생성, `x=3, y=4`
+2. `square(3)` 호출 → 새 로컬 프레임 생성, `x=3`
+3. `x * x` 반환 → 9
+4. `square(4)` 호출 → 새 로컬 프레임 생성, `x=4`
+5. `x * x` 반환 → 16
+6. `9 + 16` 반환 → 25
 
-## 📌 1.3장: 평가 모델
+### 함수 추상화(Function Abstraction)
 
-### 치환 모델 (Substitution Model)
-
-함수 호출의 의미를 이해하기 위해 치환 모델을 사용합니다.
-
-**예시:**
-```
-sum_of_squares(3, 4)
-= square(3) + square(4)
-= 3*3 + 4*4
-= 9 + 16
-= 25
-```
-
-### 평가 순서
-
-1. **응용 순서(Applicative Order)**
-   - 인자를 먼저 평가한 후 함수를 호출
-   - Python의 기본 평가 방식
-
-2. **정상 순서(Normal Order)**
-   - 필요할 때까지 계산을 미루기
-   - 게으른 평가(Lazy Evaluation)
-
----
-
-## 📌 1.4장: 환경 모델 (Environment Model)
-
-### 프레임 (Frame)
-
-함수가 호출될 때마다 새로운 **프레임(Frame)**이 생성됩니다.
-프레임은 매개변수와 지역 변수의 바인딩(이름과 값의 연결)을 저장합니다.
+함수는 **계산을 추상화**합니다. 함수 사용자는 구현 세부사항을 알 필요가 없습니다:
 
 ```python
-def f(x):
-    def g(y):
-        return x + y
-    return g
-
-add_5 = f(5)
-add_5(3)  # 8을 반환
+def improve(update, close, guess=1):
+    while not close(guess):
+        guess = update(guess)
+    return guess
 ```
 
-이 예시에서:
-- `f` 호출 시 프레임 1 생성: `x = 5`
-- `g` 호출 시 프레임 2 생성: `y = 3`, `x`는 외부 프레임에서 참조
+이 함수는:
+- **정의역**: 세 개의 함수 인자
+- **치역**: 개선된 추정값
+- **의도**: 반복적으로 추정값을 개선
 
 ---
 
-## 📌 1.5장: 람다 표현식 (Lambda Expressions)
+## 1.4 함수 설계(Designing Functions)
 
-익명 함수를 정의하는 방법입니다.
+좋은 함수를 작성하기 위한 세 가지 원칙이 있습니다:
 
-### 기본 문법
+### 원칙 1: 단일 책임(Single Responsibility)
+
+**"각 함수는 정확히 한 가지 작업을 가져야 하며, 이는 짧은 이름으로 식별되고 한 문장으로 설명될 수 있어야 합니다."**
 
 ```python
-# 일반 함수
 def square(x):
+    """Return the square of x."""
     return x * x
-
-# 람다 표현식으로 동일하게 표현
-square = lambda x: x * x
-
-# 직접 사용
-map(lambda x: x * x, [1, 2, 3, 4])  # [1, 4, 9, 16]
 ```
 
-### 사용 사례
+### 원칙 2: DRY (Don't Repeat Yourself)
 
-람다는 간단한 계산을 일회용으로 사용할 때 유용합니다.
+코드 로직을 복제하지 마세요:
 
 ```python
-sorted([3, 1, 4, 1, 5], key=lambda x: -x)  # 역순 정렬
+# 나쁜 예 (코드 중복):
+def sum_naturals(n):
+    total = 0
+    k = 1
+    while k <= n:
+        total = total + k
+        k = k + 1
+    return total
+
+def sum_cubes(n):
+    total = 0
+    k = 1
+    while k <= n:
+        total = total + k**3
+        k = k + 1
+    return total
+
+# 좋은 예 (일반화):
+def summation(n, term):
+    total, k = 0, 1
+    while k <= n:
+        total = total + term(k)
+        k = k + 1
+    return total
+
+def identity(x):
+    return x
+
+def cube(x):
+    return x ** 3
+
+summation(5, identity)  # 1+2+3+4+5
+summation(5, cube)      # 1³+2³+3³+4³+5³
+```
+
+### 원칙 3: 일반성(Generality)
+
+특정 시나리오보다는 더 광범위한 경우를 처리하세요.
+
+### 문서화(Documentation)
+
+#### Docstrings
+
+함수 정의 직후의 문자열을 **docstring**이라고 합니다. 이는 함수의 목적을 설명합니다:
+
+```python
+def ideal_gas_law(n, t, v):
+    """Return the pressure of an ideal gas.
+
+    n: number of moles (몰의 수)
+    t: absolute temperature in Kelvin (절대 온도)
+    v: volume in liters (부피)
+    """
+    return n * 8.3144621 * t / v
+```
+
+Docstring은 `help()` 함수로 확인할 수 있습니다:
+
+```python
+help(ideal_gas_law)
+```
+
+#### 주석(Comments)
+
+특정 줄에 대한 추가 설명은 `#`으로 시작합니다:
+
+```python
+# 황금비 계산
+phi = (1 + 5**0.5) / 2
+```
+
+### 기본 인자값(Default Argument Values)
+
+함수 정의에서 기본값을 지정할 수 있습니다:
+
+```python
+def pressure(n=6.022e23, t, v):
+    return n * 8.3144621 * t / v
+
+# 호출:
+pressure(6.022e23, 373, 0.5)  # 모든 인자 지정
+pressure(t=373, v=0.5)         # n은 기본값 사용
 ```
 
 ---
 
-## 📌 1.6장: 고등 함수 (Higher-Order Functions)
+## 1.5 제어(Control)
 
-**고등 함수**는 함수를 인자로 받거나 함수를 반환하는 함수입니다.
+### 문(Statements) vs 표현식(Expressions)
 
-### 함수를 인자로 받기
+- **표현식**: 값으로 평가됩니다. 예: `2 + 3`, `square(5)`
+- **문**: 실행되며 인터프리터 상태를 변경합니다. 예: 할당, 함수 정의, 반환
 
-```python
-def apply_twice(f, x):
-    return f(f(x))
+### 복합 문(Compound Statements)
 
-apply_twice(square, 3)  # square(square(3)) = square(9) = 81
+복합 문은 **헤더(header)**와 **스위트(suite)**로 구성됩니다:
+
+```
+if <expression>:
+    <suite>
 ```
 
-### 함수를 반환하기
+### 조건 문(Conditional Statements)
 
 ```python
-def make_multiplier(n):
-    def multiplier(x):
-        return x * n
-    return multiplier
-
-double = make_multiplier(2)
-triple = make_multiplier(3)
-
-double(5)  # 10
-triple(5)  # 15
+def abs_value(x):
+    if x >= 0:
+        return x
+    else:
+        return -x
 ```
 
-### 유용한 고등 함수들
+조건 문은 `if`, `elif`, `else`를 포함할 수 있습니다:
 
 ```python
-# map: 함수를 각 요소에 적용
-list(map(square, [1, 2, 3, 4]))  # [1, 4, 9, 16]
+def sign(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    else:
+        return 0
+```
 
-# filter: 조건에 맞는 요소만 선택
-list(filter(lambda x: x % 2 == 0, [1, 2, 3, 4]))  # [2, 4]
+### 부울 컨텍스트(Boolean Contexts)
 
-# reduce: 누적 계산
-from functools import reduce
-reduce(lambda x, y: x + y, [1, 2, 3, 4])  # 10
+비교 연산자: `>`, `<`, `==`, `!=`, `>=`, `<=`
+
+논리 연산자: `and`, `or`, `not`
+
+**단락 평가(Short-circuit evaluation)**:
+
+```python
+True or <error>   # True (오른쪽 평가 안함)
+False and <error> # False (오른쪽 평가 안함)
+```
+
+### 반복(Iteration)
+
+#### While 루프
+
+```python
+def fibonacci(n):
+    """Print Fibonacci numbers up to n."""
+    a, b = 0, 1
+    while a < n:
+        print(a)
+        a, b = b, a + b
+
+fibonacci(10)  # 0, 1, 1, 2, 3, 5, 8 출력
+```
+
+### 테스팅(Testing)
+
+#### Assert 문
+
+```python
+assert square(3) == 9, "square(3) should return 9"
+```
+
+#### Doctests
+
+함수의 docstring 안에 테스트를 작성할 수 있습니다:
+
+```python
+def sum_squares(x, y):
+    """Compute x*x + y*y.
+
+    >>> sum_squares(3, 4)
+    25
+    """
+    return x*x + y*y
 ```
 
 ---
 
-## 📌 1.7장: 재귀 (Recursion)
+## 1.6 고차 함수(Higher-Order Functions)
 
-함수가 자기 자신을 호출하는 방식입니다.
+**고차 함수**는:
+- 다른 함수를 인자로 받거나
+- 함수를 값으로 반환하는 함수입니다
 
-### 재귀의 구조
+이를 통해 프로그래머는 **공통 패턴을 추상화**할 수 있습니다.
 
-모든 재귀 함수는 두 부분으로 구성됩니다:
+### 함수를 인자로(Functions as Arguments)
 
-1. **기저 사례 (Base Case)**: 재귀를 멈추는 조건
-2. **재귀 사례 (Recursive Case)**: 자기 자신을 호출하는 부분
+세 개의 유사한 합계 함수를 생각해봅시다:
 
-### 예시 1: 팩토리얼
+```python
+def sum_naturals(n):
+    total, k = 0, 1
+    while k <= n:
+        total, k = total + k, k + 1
+    return total
+
+def sum_cubes(n):
+    total, k = 0, 1
+    while k <= n:
+        total, k = total + k**3, k + 1
+    return total
+```
+
+이들은 같은 패턴을 따릅니다. 이를 **고차 함수**로 추상화할 수 있습니다:
+
+```python
+def summation(n, term):
+    """Compute sum of term(k) for k=1 to n."""
+    total, k = 0, 1
+    while k <= n:
+        total, k = total + term(k), k + 1
+    return total
+
+def cube(x):
+    return x ** 3
+
+def identity(x):
+    return x
+
+summation(5, cube)      # 1³+2³+3³+4³+5³ = 225
+summation(5, identity)  # 1+2+3+4+5 = 15
+```
+
+### 함수를 일반 메서드로(Functions as General Methods)
+
+고차 함수는 특정 함수와 무관한 **일반적인 계산 방법**을 표현합니다:
+
+```python
+def improve(update, close, guess=1):
+    """Improve guess until it satisfies close."""
+    while not close(guess):
+        guess = update(guess)
+    return guess
+
+def golden_ratio():
+    def golden_update(guess):
+        return 1/guess + 1
+
+    def square_close_to_successor(guess):
+        return abs(guess*guess - guess - 1) < 1e-11
+
+    return improve(golden_update, square_close_to_successor)
+
+golden_ratio()  # 약 1.618 (황금비)
+```
+
+---
+
+## 1.7 재귀 함수(Recursive Functions)
+
+**재귀 함수**는 자신을 호출하는 함수입니다.
+
+### 기본 예제: 자릿수 합(Sum of Digits)
+
+```python
+def sum_digits(n):
+    """Return the sum of the digits of positive integer n."""
+    if n < 10:
+        return n          # 기저 사례
+    else:
+        # 마지막 자릿수와 나머지로 분리
+        all_but_last = n // 10
+        last = n % 10
+        return sum_digits(all_but_last) + last
+
+sum_digits(9)       # 9
+sum_digits(18117)   # 1+8+1+1+7 = 18
+```
+
+### 재귀 함수의 구조
+
+모든 재귀 함수는 두 가지를 포함해야 합니다:
+
+1. **기저 사례(Base Case)**: 가장 간단한 입력 - 재귀 없이 직접 계산
+2. **재귀 사례(Recursive Case)**: 더 간단한 문제로 축약한 후 자신 호출
+
+### 팩토리얼(Factorial)
 
 ```python
 def factorial(n):
-    if n == 0:
-        return 1  # 기저 사례
+    if n == 1:
+        return 1          # 기저 사례
     else:
         return n * factorial(n - 1)  # 재귀 사례
 
 factorial(5)  # 5 * 4 * 3 * 2 * 1 = 120
 ```
 
-### 예시 2: 피보나치 수열
+### 상호 재귀(Mutual Recursion)
 
-```python
-def fib(n):
-    if n == 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
-
-fib(6)  # 8
-```
-
-### 재귀 vs 반복
-
-```python
-# 재귀 버전
-def sum_recursive(n):
-    if n == 0:
-        return 0
-    return n + sum_recursive(n - 1)
-
-# 반복 버전
-def sum_iterative(n):
-    total = 0
-    for i in range(n + 1):
-        total += i
-    return total
-```
-
----
-
-## 📌 1.8장: 함수 합성과 분해
-
-### 함수 분해
-
-큰 문제를 작은 함수로 나누어 해결합니다.
+두 함수가 서로를 호출할 수 있습니다:
 
 ```python
 def is_even(n):
-    return n % 2 == 0
+    if n == 0:
+        return True
+    else:
+        return is_odd(n - 1)
 
 def is_odd(n):
-    return not is_even(n)
-
-def count_evens(numbers):
-    count = 0
-    for n in numbers:
-        if is_even(n):
-            count += 1
-    return count
+    if n == 0:
+        return False
+    else:
+        return is_even(n - 1)
 ```
 
-### 함수 합성
+### 트리 재귀(Tree Recursion)
 
-작은 함수들을 조합하여 복잡한 함수를 만듭니다.
+함수가 자신을 여러 번 호출합니다:
 
 ```python
-def compose(f, g):
-    def composed(x):
-        return f(g(x))
-    return composed
+def fib(n):
+    """Return the nth Fibonacci number."""
+    if n == 1:
+        return 0
+    if n == 2:
+        return 1
+    return fib(n - 2) + fib(n - 1)
 
-double_then_square = compose(square, lambda x: x * 2)
-double_then_square(5)  # square(5*2) = square(10) = 100
+fib(5)  # 3
 ```
 
+**주의**: 트리 재귀는 많은 중복 계산을 생성합니다. 이를 최적화하려면 **메모이제이션(memoization)**을 사용합니다.
+
+### 재귀의 신념의 도약(Recursive Leap of Faith)
+
+재귀를 이해하는 열쇠는:
+
+> "재귀 호출이 더 간단한 문제를 올바르게 해결한다고 믿으세요."
+
+전체 계산을 정신적으로 풀어헤치려고 하지 마세요. 각 단계가 올바른지만 확인하세요.
+
 ---
 
-## 🎯 핵심 요약
+## 🎯 핵심 개념 요약
 
-| 개념 | 설명 | 예시 |
+| 개념 | 의미 | 예시 |
 |------|------|------|
-| 함수 정의 | 계산을 추상화 | `def square(x): return x * x` |
-| 환경 모델 | 함수 호출 시 변수 바인딩 | 프레임과 스코프 |
-| 람다 표현식 | 익명 함수 | `lambda x: x * x` |
-| 고등 함수 | 함수를 다루는 함수 | `map()`, `filter()` |
-| 재귀 | 자기 자신을 호출 | `factorial()`, `fib()` |
+| 표현식 | 값으로 평가되는 코드 | `2 + 3`, `square(5)` |
+| 호출 표현식 | 함수를 인자에 적용 | `max(7.5, 9.5)` |
+| 함수 정의 | 새로운 함수 생성 | `def square(x): return x * x` |
+| 환경 모델 | 이름-값 바인딩 | 전역/로컬 프레임 |
+| 조건문 | 조건에 따른 실행 | `if`, `elif`, `else` |
+| 반복문 | 반복 실행 | `while` 루프 |
+| 고차 함수 | 함수를 인자/반환값으로 | `summation(n, term)` |
+| 재귀 | 자신을 호출하는 함수 | `factorial(n)` |
 
 ---
 
-## 📚 다음 장
+## 📚 다음 단계
 
-[**2장: 데이터를 통한 추상화**](./chapter2.md)로 이동하여 객체지향 프로그래밍과 데이터 구조를 배웁니다.
+[**제2장: 데이터를 통한 추상화**](./chapter2.md)로 이동하여 데이터 구조와 객체지향 프로그래밍을 배웁니다.
 
 ---
 
-**이 페이지는 현재 제작 중이며, 더 자세한 코드 예시와 연습 문제가 추가될 예정입니다.**
+**이 페이지는 [Composing Programs](https://www.composingprograms.com/pages/11-getting-started.html)의 한국어 초월번역입니다.**

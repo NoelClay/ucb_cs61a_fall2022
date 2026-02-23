@@ -1,14 +1,25 @@
-title: "프로그램 구성하기 - 한국어 번역판"
-description: "UC Berkeley CS61A 교과서 'Composing Programs'의 한국어 번역"
+title: "프로그램 구성하기"
+tagline: "UC Berkeley CS61A 교과서의 한국어 초월번역"
+description: "프로그래밍의 본질을 배우는 완전한 온라인 교과서"
+
+# 테마 설정
 theme: jekyll-theme-minimal
+remote_theme: pages-themes/minimal@v0.2.0
+
+# 기본 설정
+url: "https://noelclay.github.io/ucb_cs61a_fall2022"
+baseurl: "/ucb_cs61a_fall2022"
+
+# GitHub 설정
+github:
+  repository_name: ucb_cs61a_fall2022
+  owner_name: NoelClay
+  owner_url: https://github.com/NoelClay
+  is_project_page: true
+  repository_url: https://github.com/NoelClay/ucb_cs61a_fall2022
+
+# 로캘 설정
 lang: ko
-
-# GitHub Pages 설정
-repository: NoelClay/ucb_cs61a_fall2022
-github_url: https://github.com/NoelClay/ucb_cs61a_fall2022
-url: https://noelclay.github.io/ucb_cs61a_fall2022
-
-# 한국어 설정
 locale: ko_KR
 timezone: Asia/Seoul
 
@@ -17,7 +28,31 @@ markdown: kramdown
 kramdown:
   input: GFM
   hard_wrap: true
+  syntax_highlighter: rouge
 
 # 플러그인
 plugins:
   - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-github-metadata
+
+# 언어 메타데이터
+defaults:
+  - scope:
+      path: ""
+    values:
+      lang: ko
+
+# SEO 설정
+author:
+  name: NoelClay
+  url: https://github.com/NoelClay
+
+# 빌드 설정
+exclude:
+  - .gitignore
+  - README.md
+  - LICENSE
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
