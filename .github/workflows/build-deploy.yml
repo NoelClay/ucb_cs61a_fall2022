@@ -46,7 +46,7 @@ jobs:
       - name: Build Jekyll site
         run: |
           cd docs
-          bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+          bundle exec jekyll build
         env:
           JEKYLL_ENV: production
           PAGES_REPO_NWO: ${{ github.repository }}  # ✅ 이 줄을 추가 (저장소 이름 주입)
