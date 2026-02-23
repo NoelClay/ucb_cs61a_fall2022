@@ -1,497 +1,501 @@
 ---
 layout: default
-title: "4장: 데이터 처리"
+title: "제4장: 데이터 처리"
 ---
 
-# 4장: 데이터 처리
+# 제4장: 데이터 처리
+## Data Processing
 
-## 개요
-
-이 장에서는 대규모 데이터를 효율적으로 처리하는 방법을 배웁니다. **선언형 프로그래밍**, **논리 프로그래밍**, **SQL**, 그리고 **분산 컴퓨팅** 기초를 다룹니다.
+> 컴퓨터의 진정한 능력은 **대규모 데이터셋**을 처리하여 의미 있는 통찰력을 추출하는 데 있습니다. 이 장에서는 무한 시퀀스부터 선언형 쿼리까지 다양한 데이터 처리 방식을 탐구합니다.
 
 ---
 
-## 📌 4.1장: 선언형 프로그래밍 (Declarative Programming)
+## 4.1 소개(Introduction)
+
+### 데이터 처리의 현실
+
+**컴퓨터의 본질:**
+
+"컴퓨터는 대규모 데이터셋으로부터 인간 행동과 세계 사건에 대한 의미 있는 통찰력을 추출한다"
+
+### 무한과 비한정 시퀀스
+
+프로그램이 처리하는 데이터:
+
+**수학적 시퀀스:**
+- 양의 정수
+- 피보나치 수열
+- 소수
+
+**실제 데이터 스트림:**
+- 휴대폰 타워를 통한 통화 기록
+- 항공기의 연속 센서 측정값
+- 사회 미디어의 끝없는 피드
+
+### 데이터 처리의 철학
+
+**핵심 아이디어:**
+
+프로그램을 "순차적 데이터 스트림에 대한 일련의 조작 파이프라인"으로 구성
+
+```
+입력 → 필터링 → 변환 → 정렬 → 출력
+```
+
+### 이 장에서 다루는 주제
+
+1. **암시적 시퀀스** - 메모리 효율적인 무한 시퀀스
+2. **선언형 프로그래밍** - SQL을 통한 데이터 쿼리
+3. **논리 프로그래밍** - Prolog 스타일의 패턴 매칭
+4. **통일** - 로직 프로그래밍의 기초
+
+---
+
+## 4.2 암시적 시퀀스 (Implicit Sequences)
+
+### 문제: 메모리 효율성
+
+**전통적 방식:**
+
+```python
+# 10억 개 정수를 모두 메모리에 저장?
+numbers = list(range(10_000, 1_000_000_000))  # 메모리 초과!
+```
+
+**해결책: 게으른 계산(Lazy Computation)**
+
+```python
+# 필요할 때만 계산
+for i in range(10_000, 1_000_000_000):
+    if condition(i):
+        process(i)
+```
+
+### 반복자 (Iterators)
+
+**정의:**
+
+순차적으로 값에 접근할 수 있는 객체
+
+```python
+# 반복자 생성
+iterator = iter([1, 2, 3, 4, 5])
+
+# 다음 값 얻기
+next(iterator)  # 1
+next(iterator)  # 2
+next(iterator)  # 3
+
+# 소진되면 StopIteration 예외
+next(iterator)  # ... → StopIteration
+```
+
+**중요한 특징:**
+
+- 한 번에 하나의 값만 메모리에 로드
+- 전진만 가능 (뒤로 이동 불가)
+- 상태를 유지하며 진행
+
+### 반복 가능 (Iterables)
+
+`iter()` 함수로 반복자를 생성할 수 있는 객체:
+
+```python
+# 내장 반복 가능
+list([1, 2, 3])
+dict({'a': 1, 'b': 2})
+set({1, 2, 3})
+range(10)
+str("Hello")
+
+# for 루프는 자동으로 반복자 생성
+for x in [1, 2, 3]:
+    print(x)
+# 내부적으로:
+# iterator = iter([1, 2, 3])
+# while True:
+#     try:
+#         x = next(iterator)
+#     except StopIteration:
+#         break
+```
+
+### 생성자 (Generators)
+
+**정의:**
+
+`return` 대신 `yield`를 사용하는 함수
+
+```python
+def countdown(n):
+    """n부터 1까지 역순 발생"""
+    while n > 0:
+        yield n
+        n -= 1
+
+# 사용
+for count in countdown(5):
+    print(count)  # 5, 4, 3, 2, 1
+```
+
+**장점:**
+
+- 상태를 자동으로 보존
+- 복잡한 반복 로직을 우아하게 표현
+- 필요할 때만 값 계산
+
+**피보나치 생성자:**
+
+```python
+def fibonacci():
+    """피보나치 수열 생성"""
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+# 첫 10개 값
+for i, num in enumerate(fibonacci()):
+    if i >= 10:
+        break
+    print(num)  # 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
+```
+
+### 스트림 (Streams)
+
+**개념:**
+
+게으르게 계산되는 함수형 연결 리스트
+
+```
+스트림 = [첫 값] + [나머지를 계산하는 함수]
+```
+
+**이점:**
+
+- 반복자와 달리: 여러 번 처리 가능
+- 불변 구조
+- 순수 함수로 처리하면 재현성 보장
+
+---
+
+## 4.3 선언형 프로그래밍 (Declarative Programming)
 
 ### 명령형 vs 선언형
 
-**명령형 (Imperative)**: 어떻게 하는가를 명시
+**명령형 (How):**
 
 ```python
-# 명령형: 단계별 지시
-total = 0
-for x in numbers:
-    if x > 5:
-        total += x * 2
-print(total)
+# 계산 단계를 직접 기술
+result = []
+for item in items:
+    if item > 5:
+        result.append(item * 2)
+result.sort()
 ```
 
-**선언형 (Declarative)**: 무엇을 원하는가를 명시
-
-```python
-# 선언형: 결과 정의
-total = sum(x * 2 for x in numbers if x > 5)
-```
-
-### 함수형 스타일
-
-```python
-# 파이프라인 구성
-def pipeline(data, *functions):
-    result = data
-    for f in functions:
-        result = f(result)
-    return result
-
-# 각 단계 정의
-filter_large = lambda nums: [x for x in nums if x > 5]
-double = lambda nums: [x * 2 for x in nums]
-sum_all = lambda nums: sum(nums)
-
-# 사용
-result = pipeline(numbers, filter_large, double, sum_all)
-```
-
----
-
-## 📌 4.2장: 논리 프로그래밍 (Logic Programming)
-
-### 논리 프로그래밍 개념
-
-논리 프로그래밍은 **사실(Facts)**과 **규칙(Rules)**로 프로그램을 작성합니다.
-
-```
-# 사실 (Facts)
-parent(tom, bob)
-parent(bob, alice)
-
-# 규칙 (Rules)
-grandparent(X, Z) :- parent(X, Y), parent(Y, Z)
-
-# 쿼리 (Query)
-?- grandparent(tom, alice)
-```
-
-### Python에서의 간단한 구현
-
-```python
-# 데이터베이스
-facts = [
-    ("parent", ("tom", "bob")),
-    ("parent", ("bob", "alice")),
-]
-
-# 규칙
-rules = {
-    "grandparent": lambda x, z: any(
-        ("parent", (x, y)) in facts and
-        ("parent", (y, z)) in facts
-        for y in range(100)
-    )
-}
-
-# 쿼리
-def query(relation, args):
-    if relation == "parent":
-        return ("parent", args) in facts
-    elif relation == "grandparent":
-        return rules["grandparent"](*args)
-
-# 사용
-print(query("parent", ("tom", "bob")))        # True
-print(query("grandparent", ("tom", "alice"))) # True
-```
-
----
-
-## 📌 4.3장: SQL을 통한 데이터 조회
-
-### SQL 기초
-
-**SELECT**: 데이터 조회
+**선언형 (What):**
 
 ```sql
--- 모든 학생의 이름과 학번
-SELECT name, student_id FROM students;
-
--- 조건부 조회
-SELECT name, grade FROM students WHERE grade >= 80;
-
--- 정렬
-SELECT name, grade FROM students ORDER BY grade DESC;
+SELECT item * 2 FROM items WHERE item > 5 ORDER BY item * 2
 ```
 
-### Python에서 SQL 사용
+### SQL 개요
 
-```python
-import sqlite3
-
-# 데이터베이스 연결
-conn = sqlite3.connect(':memory:')
-cursor = conn.cursor()
-
-# 테이블 생성
-cursor.execute('''
-    CREATE TABLE students (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        grade INTEGER
-    )
-''')
-
-# 데이터 삽입
-cursor.execute("INSERT INTO students VALUES (1, '철수', 85)")
-cursor.execute("INSERT INTO students VALUES (2, '영희', 92)")
-
-# 데이터 조회
-cursor.execute("SELECT * FROM students WHERE grade >= 90")
-for row in cursor.fetchall():
-    print(row)
-
-conn.close()
-```
-
-### JOIN 연산
+**기본 구조:**
 
 ```sql
--- 내부 조인
+SELECT <columns>
+FROM <table>
+WHERE <condition>
+ORDER BY <column>
+```
+
+### 테이블과 레코드
+
+**테이블 = 관계(Relation)**
+
+```
+테이블명: Students
+┌──────┬─────────┬────┐
+│ id   │ name    │ age│
+├──────┼─────────┼────┤
+│ 1    │ Alice   │ 20 │
+│ 2    │ Bob     │ 22 │
+│ 3    │ Carol   │ 21 │
+└──────┴─────────┴────┘
+```
+
+### 기본 SELECT 명령어
+
+**프로젝션 (특정 열 선택):**
+
+```sql
+SELECT name, age FROM students;
+```
+
+**필터링 (WHERE):**
+
+```sql
+SELECT * FROM students WHERE age > 20;
+```
+
+**정렬 (ORDER BY):**
+
+```sql
+SELECT * FROM students ORDER BY age DESC;
+```
+
+### 조인 (Joins)
+
+**테이블 결합:**
+
+```sql
 SELECT students.name, courses.title
 FROM students
 INNER JOIN enrollments ON students.id = enrollments.student_id
 INNER JOIN courses ON enrollments.course_id = courses.id;
-
--- 왼쪽 외부 조인
-SELECT students.name, courses.title
-FROM students
-LEFT JOIN enrollments ON students.id = enrollments.student_id
-LEFT JOIN courses ON enrollments.course_id = courses.id;
 ```
 
-### 집계 함수
+**작동 원리:**
+
+```
+두 테이블의 모든 행 조합 검사
+일치하는 조건의 조합만 포함
+```
+
+### 집계 (Aggregation)
+
+**집계 함수:**
 
 ```sql
--- 학생 수
-SELECT COUNT(*) FROM students;
+SELECT
+    COUNT(*) as num_students,
+    AVG(age) as average_age,
+    MAX(age) as oldest_age
+FROM students;
+```
 
--- 평균 성적
-SELECT AVG(grade) FROM students;
+**GROUP BY (그룹별 집계):**
 
--- 그룹별 집계
-SELECT course_id, COUNT(*) as count
+```sql
+SELECT
+    course_id,
+    COUNT(*) as enrollment_count
 FROM enrollments
-GROUP BY course_id
-HAVING COUNT(*) > 5;
+GROUP BY course_id;
 ```
 
----
+### 재귀 쿼리
 
-## 📌 4.4장: 데이터 프레임 (DataFrames)
+**WITH RECURSIVE (반복):**
 
-### Pandas 소개
-
-```python
-import pandas as pd
-
-# 데이터프레임 생성
-df = pd.DataFrame({
-    'name': ['철수', '영희', '민준'],
-    'age': [30, 28, 35],
-    'city': ['서울', '부산', '서울']
-})
-
-# 데이터 조회
-print(df.head())              # 처음 5행
-print(df[df['age'] > 30])     # 30살 이상
-
-# 통계
-print(df['age'].mean())       # 평균 나이
-print(df.groupby('city').size())  # 도시별 인구
-```
-
-### 데이터 변환
-
-```python
-# 필터링
-young = df[df['age'] < 30]
-
-# 정렬
-sorted_df = df.sort_values('age', ascending=False)
-
-# 새 열 추가
-df['age_group'] = df['age'].apply(
-    lambda x: '젊음' if x < 30 else '성인'
+```sql
+WITH RECURSIVE integers(n) AS (
+    SELECT 1
+    UNION ALL
+    SELECT n + 1 FROM integers WHERE n < 100
 )
-
-# 행 결합 (UNION)
-combined = pd.concat([df1, df2])
-
-# 열 합치기 (JOIN)
-merged = pd.merge(df1, df2, on='id')
+SELECT * FROM integers;
 ```
 
 ---
 
-## 📌 4.5장: 분산 컴퓨팅 기초
+## 4.4 논리 프로그래밍 (Logic Programming)
 
-### Map-Reduce 패턴
+### Prolog: 사실 기반 프로그래밍
 
-**Map**: 데이터를 변환
+**기본 개념:**
 
-```python
-# 각 단어의 길이를 매핑
-words = ['hello', 'world', 'python']
-word_lengths = list(map(len, words))
-# [5, 5, 6]
+프로그램 = 사실의 데이터베이스 + 규칙
+
+### 사실과 쿼리
+
+**사실 정의:**
+
+```prolog
+fact parent(abraham, barack).
+fact parent(barack, malia).
+fact parent(malia, sasha).
 ```
 
-**Reduce**: 데이터를 축약
+**쿼리 (질문):**
 
-```python
-from functools import reduce
-
-# 모든 길이의 합
-total_length = reduce(lambda a, b: a + b, word_lengths)
-# 16
+```prolog
+query (parent abraham ?child)
+% 결과: ?child = barack
 ```
 
-### Word Count 예제
+### 규칙 (Rules)
 
-```python
-from functools import reduce
-from collections import defaultdict
+**복합 사실 정의:**
 
-text = """
-python is great
-python is powerful
-python is elegant
-"""
+```prolog
+fact (grandparent ?gp ?gc) :-
+    (parent ?gp ?parent),
+    (parent ?parent ?gc)
 
-# Map: 각 단어를 (word, 1)로 변환
-words_with_count = [
-    (word.strip(), 1)
-    for word in text.lower().split()
-    if word.strip()
-]
-
-# Shuffle: 같은 단어끼리 그룹화
-word_groups = defaultdict(list)
-for word, count in words_with_count:
-    word_groups[word].append(count)
-
-# Reduce: 각 그룹의 개수 합산
-word_counts = {
-    word: sum(counts)
-    for word, counts in word_groups.items()
-}
-
-print(word_counts)
-# {'python': 3, 'is': 3, 'great': 1, 'powerful': 1, 'elegant': 1}
+% 읽기: "?gp가 ?gc의 할아버지라면,
+% ?gp가 어떤 ?parent의 부모이고,
+% 그 ?parent가 ?gc의 부모인 경우"
 ```
 
-### 실시간 데이터 처리
+### 재귀 사실
 
-```python
-# 스트림 처리 시뮬레이션
-def process_stream(data_stream):
-    """스트림 데이터 처리"""
-    accumulator = 0
-    for data in data_stream:
-        accumulator += data
-        yield {
-            'value': data,
-            'cumulative': accumulator
-        }
+**조상 관계:**
 
-# 사용
-stream = range(1, 6)
-results = list(process_stream(stream))
-for result in results:
-    print(result)
+```prolog
+fact (ancestor ?a ?d) :- (parent ?a ?d)
+fact (ancestor ?a ?d) :-
+    (parent ?p ?d),
+    (ancestor ?a ?p)
+
+% "?a가 ?d의 조상이면:
+%  - 직접 부모이거나
+%  - 다른 누군가의 부모이고, 그 누군가의 조상인 경우"
 ```
 
----
+### 부정 (Negation as Failure)
 
-## 📌 4.6장: 병렬 처리
-
-### 멀티프로세싱
-
-```python
-from multiprocessing import Pool
-
-def square(x):
-    return x * x
-
-# 병렬 처리
-with Pool(4) as p:
-    results = p.map(square, range(10))
-
-print(results)  # [0, 1, 4, 9, 16, ...]
+```prolog
+fact (not-parent ?p ?c) :- (not (parent ?p ?c))
 ```
 
-### 멀티스레딩
+**경고:** 비한정 변수를 포함한 부정은 예상과 다를 수 있음
 
-```python
-import threading
-import time
+### 패턴 매칭과 리스트
 
-def worker(name):
-    for i in range(3):
-        print(f"{name}이 작업 중... {i}")
-        time.sleep(1)
+**계층적 데이터:**
 
-threads = []
-for i in range(3):
-    t = threading.Thread(target=worker, args=(f"스레드 {i}",))
-    threads.append(t)
-    t.start()
+```prolog
+fact (tree-node (value 1)
+               ((value 2) nil (value 3)))
+```
 
-for t in threads:
-    t.join()  # 모든 스레드 대기
+**리스트 패턴:**
+
+```prolog
+fact (append () ?y ?y)
+fact (append (pair ?x ?rest) ?y (pair ?x ?z)) :-
+    (append ?rest ?y ?z)
 ```
 
 ---
 
-## 📌 4.7장: 최적화 (Optimization)
+## 4.5 통일 (Unification)
 
-### 시간 복잡도 분석
+### 핵심: 패턴 매칭 일반화
+
+**정의:**
+
+"두 표현식(모두 변수 포함 가능)이 일치하도록 하는 변수 바인딩 찾기"
+
+### 기본 예제
+
+```
+표현식 1: (parent abraham ?child)
+표현식 2: (parent abraham barack)
+
+통일: ?child = barack
+```
+
+### 통일 알고리즘
+
+**단계별 과정:**
+
+1. **변수 해석**
+   - 변수를 그 바인딩된 값으로 해석
+
+2. **동일성 확인**
+   - 표현식이 동일하면 성공
+
+3. **변수 바인딩**
+   - 비한정 변수를 적절히 바인딩
+
+4. **원자 불일치**
+   - 원자가 일치하지 않으면 실패
+
+5. **재귀적 처리**
+   - 복합 표현식의 요소 재귀적 처리
+
+### 구현
+
+**변수 추적:**
 
 ```python
-# O(n) - 선형
-def find_max(numbers):
-    return max(numbers)
+class Frame:
+    def __init__(self, parent=None):
+        self.bindings = {}
+        self.parent = parent
 
-# O(n²) - 이차
-def bubble_sort(numbers):
-    n = len(numbers)
-    for i in range(n):
-        for j in range(n - i - 1):
-            if numbers[j] > numbers[j + 1]:
-                numbers[j], numbers[j + 1] = numbers[j + 1], numbers[j]
+    def bind(self, var, value):
+        """변수를 값으로 바인딩"""
+        self.bindings[var] = value
 
-# O(log n) - 로그
-def binary_search(sorted_list, target):
-    left, right = 0, len(sorted_list) - 1
-    while left <= right:
-        mid = (left + right) // 2
-        if sorted_list[mid] == target:
-            return mid
-        elif sorted_list[mid] < target:
-            left = mid + 1
+    def lookup(self, var):
+        """변수의 최종 값 추적"""
+        if var in self.bindings:
+            value = self.bindings[var]
+            # 바인딩 체인 따라가기
+            if is_variable(value):
+                return self.lookup(value)
+            return value
+        elif self.parent:
+            return self.parent.lookup(var)
         else:
-            right = mid - 1
-    return -1
+            return var  # 비한정 변수
 ```
 
-### 캐싱 (Memoization)
+### 검색 프로세스
 
-```python
-from functools import lru_cache
+**쿼리 해결:**
 
-# 최적화 전 (느림)
-def fib_slow(n):
-    if n <= 1:
-        return n
-    return fib_slow(n - 1) + fib_slow(n - 2)
+```
+쿼리: (ancestor abraham sasha)
 
-# 최적화 후 (빠름)
-@lru_cache(maxsize=None)
-def fib_fast(n):
-    if n <= 1:
-        return n
-    return fib_fast(n - 1) + fib_fast(n - 2)
+1. 데이터베이스의 각 사실 시도
+2. ancestor ?a ?d 규칙 매칭
+3. 통일: ?a=abraham, ?d=sasha
+4. 가설 평가:
+   - (parent abraham ?p)와 일치하는 사실 찾기
+   - (ancestor abraham ?p)를 재귀적으로 증명
 
-# 성능 비교
-import time
-
-start = time.time()
-result = fib_slow(35)
-print(f"느린 버전: {time.time() - start:.2f}초")
-
-start = time.time()
-result = fib_fast(35)
-print(f"빠른 버전: {time.time() - start:.4f}초")
+5. 모든 가능한 해결책 찾기
 ```
 
 ---
 
-## 📌 4.8장: 사례 연구
+## 🎯 핵심 개념 요약
 
-### 추천 시스템
-
-```python
-import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
-
-# 사용자-영화 평점 행렬
-ratings = pd.DataFrame({
-    '유저1': [5, 3, 0, 1],
-    '유저2': [4, 0, 0, 1],
-    '유저3': [1, 1, 0, 5],
-    '유저4': [1, 0, 0, 4]
-}, index=['영화A', '영화B', '영화C', '영화D'])
-
-# 유사도 계산
-similarity = cosine_similarity(ratings.T)
-
-# 유저1과 유사한 유저 찾기
-similar_users = pd.Series(similarity[0]).nlargest(2).index
-print(f"유저1과 유사한 유저: {similar_users}")
-```
-
-### 데이터 시각화
-
-```python
-import matplotlib.pyplot as plt
-
-# 데이터 준비
-categories = ['A', 'B', 'C', 'D']
-values = [23, 45, 56, 78]
-
-# 막대 그래프
-plt.bar(categories, values)
-plt.title('카테고리별 값')
-plt.xlabel('카테고리')
-plt.ylabel('값')
-plt.show()
-
-# 선 그래프
-time_series = [1, 4, 9, 16, 25]
-plt.plot(time_series)
-plt.title('시간 경과에 따른 변화')
-plt.show()
-```
-
----
-
-## 🎯 핵심 요약
-
-| 주제 | 설명 | 기술 |
+| 개념 | 정의 | 특징 |
 |------|------|------|
-| 선언형 프로그래밍 | 무엇을 원하는가 표현 | 함수형 파이프라인 |
-| 논리 프로그래밍 | 사실과 규칙으로 표현 | Prolog, 논리 규칙 |
-| SQL | 데이터 조회 언어 | SELECT, JOIN, GROUP BY |
-| 데이터프레임 | 테이블 형태 데이터 | Pandas |
-| Map-Reduce | 분산 데이터 처리 | 병렬 계산 |
-| 최적화 | 성능 개선 | 시간 복잡도, 캐싱 |
+| 게으른 평가 | 필요할 때만 계산 | 메모리 효율 |
+| 반복자 | 순차적 접근 객체 | 한 방향만 가능 |
+| 생성자 | yield 사용 함수 | 상태 보존 |
+| 선언형 | "무엇"을 원하는지 | SQL 쿼리 |
+| 논리 프로그래밍 | 사실과 규칙 기반 | Prolog |
+| 통일 | 패턴 매칭 일반화 | 변수 바인딩 |
 
 ---
 
-## 📚 관련 페이지
+## 💡 프로그래밍 패러다임 비교
 
-- [3장: 컴퓨터 프로그램 해석](./chapter3.md)
-- [메인 페이지](./index.md)
-
----
-
-## 🚀 다음 단계
-
-이 교과서를 완료하면:
-- Python을 능숙하게 다룰 수 있습니다
-- 프로그래밍의 본질적인 개념을 이해합니다
-- 복잡한 문제를 체계적으로 해결할 수 있습니다
-
-**UC Berkeley CS61A 과정에 도전해보세요!**
+| 패러다임 | 예시 | 장점 |
+|----------|------|------|
+| **명령형** | Python, Java | 직관적, 제어 가능 |
+| **함수형** | Scheme, Lisp | 추론 가능, 병렬화 용이 |
+| **선언형** | SQL | 간결, 최적화 가능 |
+| **논리형** | Prolog | 자동 탐색, 수학적 |
 
 ---
 
-**이 페이지는 현재 제작 중이며, 더 자세한 코드 예시와 연습 문제가 추가될 예정입니다.**
+## 📚 전체 여정
+
+- **1장:** 함수를 통한 추상화
+- **2장:** 데이터를 통한 추상화
+- **3장:** 프로그램의 의미 (인터프리터)
+- **4장:** 대규모 데이터 처리
+
+---
+
+**이 페이지는 [Composing Programs - Chapter 4](https://www.composingprograms.com/pages/41-introduction.html)의 한국어 초월번역입니다.**
