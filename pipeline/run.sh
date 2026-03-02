@@ -8,6 +8,7 @@ PACKAGES_DIR="$USB_ROOT/pipeline/packages"
 
 export USB_ROOT
 export PYTHONPATH="$PACKAGES_DIR:$USB_ROOT:$PYTHONPATH"
+export PYTHONNOUSERSITE=1  # 홈 디렉토리 손상 패키지 무시
 
 if [ -f "$USB_ROOT/.env" ]; then
     export $(grep -v '^#' "$USB_ROOT/.env" | xargs)

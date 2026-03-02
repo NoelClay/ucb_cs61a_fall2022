@@ -10,13 +10,12 @@ def build_output_path(video_id: str, raw_dir: str) -> Path:
 
 
 def download_video(url: str, output_path: Path) -> Path:
-    from yt_dlp import YoutubeDL
-
     output_path = Path(output_path)
     if output_path.exists():
         logger.info(f"[SKIP] Already downloaded: {output_path.name}")
         return output_path
 
+    from yt_dlp import YoutubeDL
     output_path.parent.mkdir(parents=True, exist_ok=True)
     ydl_opts = {
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
