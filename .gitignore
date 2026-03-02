@@ -53,3 +53,14 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Pipeline
+.env
+pipeline/gcp_key.json
+pipeline/venv/
+data/
+models/
+logs/
+__pycache__/
+*.pyc
+.pytest_cache/

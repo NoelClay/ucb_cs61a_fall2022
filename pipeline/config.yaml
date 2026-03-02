@@ -1,0 +1,43 @@
+paths:
+  usb_root: "${USB_ROOT}"
+  data: "${USB_ROOT}/data"
+  models: "${USB_ROOT}/models"
+  logs: "${USB_ROOT}/logs"
+
+whisperx:
+  model: "large-v2"
+  language: "en"
+  min_speakers: 1
+  max_speakers: 5
+  diarize: true
+
+subtitle:
+  max_chars_per_line: 42
+  min_duration_sec: 1.0
+  max_duration_sec: 5.0
+  batch_size: 30
+
+tts:
+  timing_tolerance: 0.25
+  default_voice: "ko-KR-Neural2-C"
+  speakers:
+    SPEAKER_00:
+      voice: "ko-KR-Neural2-C"
+      speaking_rate: 0.95
+      pitch: -1.0
+    SPEAKER_01:
+      voice: "ko-KR-Neural2-B"
+      speaking_rate: 1.0
+      pitch: 0.0
+    SPEAKER_UNKNOWN:
+      voice: "ko-KR-Neural2-A"
+      speaking_rate: 1.05
+      pitch: 1.0
+
+audio:
+  vocals_lufs: -18
+  bgm_lufs: -25
+
+cost:
+  tts_per_million_chars: 16.0
+  claude_per_million_tokens: 3.0

@@ -1,0 +1,14 @@
+SPEAKER_00:
+  voice: "ko-KR-Neural2-C"
+  speaking_rate: 0.95
+  pitch: -1.0
+
+SPEAKER_01:
+  voice: "ko-KR-Neural2-B"
+  speaking_rate: 1.0
+  pitch: 0.0
+
+SPEAKER_UNKNOWN:
+  voice: "ko-KR-Neural2-A"
+  speaking_rate: 1.05
+  pitch: 1.0
