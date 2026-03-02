@@ -1,0 +1,8 @@
+# 개발 필수 (코드 작성 및 테스트용)
+anthropic==0.28.0
+python-dotenv==1.0.1
+pyyaml==6.0.1
+pydantic==2.7.1
+pytest==8.2.0
+pytest-mock==3.14.0
+tqdm==4.66.4
