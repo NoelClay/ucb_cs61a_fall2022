@@ -5,7 +5,7 @@
 ## 📁 구조
 
 ```
-나의시험/
+my-exams/
 ├── preparation/
 │   ├── summary.md
 │   └── practice_problems.py
