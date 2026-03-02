@@ -1,0 +1,10 @@
+# 실제 파이프라인 실행 시 필요 (무거운 ML 패키지)
+# 설치: pip install --target=pipeline/packages --no-cache-dir -r pipeline/requirements-runtime.txt
+whisperx==3.1.1
+spleeter==2.4.0
+google-cloud-texttospeech==2.16.3
+ffmpeg-python==0.2.0
+pyrubberband==0.3.0
+soundfile==0.12.1
+librosa==0.10.2
+numpy==1.26.4
