@@ -3,7 +3,6 @@
 ## 사전 준비
 
 - [ ] `.env` 파일 작성 (`.env.example` 참고)
-- [ ] `pipeline/gcp_key.json` 설치 (Google Cloud TTS 서비스 계정 키)
 - [ ] `HF_TOKEN` 환경변수 설정 (pyannote diarization 접근용)
 - [ ] `pipeline/video_list.csv`에 Lecture 01 실제 Bilibili URL 입력
 
@@ -15,22 +14,10 @@ pip install --target=pipeline/packages --no-cache-dir \
     -r pipeline/requirements-runtime.txt
 ```
 
-## GCP 연결 테스트
-
-```bash
-export $(grep -v '^#' .env | xargs)
-PYTHONPATH=pipeline/packages:. PYTHONNOUSERSITE=1 python3 -c "
-from google.cloud import texttospeech
-client = texttospeech.TextToSpeechClient()
-voices = client.list_voices(language_code='ko-KR')
-ko = [v.name for v in voices.voices if 'Neural2' in v.name]
-print('사용 가능한 한국어 Neural2 음성:', ko)
-"
-```
-
 ## WhisperX 모델 사전 다운로드
 
 ```bash
+export $(grep -v '^#' .env | xargs)
 PYTHONPATH=pipeline/packages:. PYTHONNOUSERSITE=1 python3 -c "
 import os, whisperx
 model = whisperx.load_model(
@@ -41,7 +28,36 @@ print('WhisperX large-v2 준비 완료')
 "
 ```
 
-## Lecture 01 파이프라인 실행
+## Lecture 01 — 1단계: 다운로드 + 전사 + 영어 자막 생성
+
+```bash
+export $(grep -v '^#' .env | xargs)
+PYTHONPATH=pipeline/packages:. PYTHONNOUSERSITE=1 python3 -c "
+from pipeline.control_tower import ControlTower, TranslationPendingError
+ct = ControlTower(config_path='pipeline/config.yaml')
+try:
+    ct.process_video('lecture_01', 'https://www.bilibili.com/video/BV1GK411Q7qp')
+except TranslationPendingError as e:
+    print(e)
+    print('→ 2단계: Claude Code로 번역을 진행하세요')
+"
+```
+
+파이프라인이 자동으로 일시 중단되고 아래 파일이 생성됩니다:
+- `data/02_subtitles/lecture_01_en.srt` — 영어 원본 자막
+- `data/02_subtitles/lecture_01_translation_input.md` — 번역 입력 파일
+
+## Lecture 01 — 2단계: Claude Code로 한국어 번역
+
+Claude Code(이 세션)에서 아래 요청을 입력하세요:
+
+```
+data/02_subtitles/lecture_01_translation_input.md 파일을 읽고
+CS61A 강의 자막을 한국어로 번역하여
+data/02_subtitles/lecture_01_ko.srt 에 SRT 형식으로 저장하세요.
+```
+
+## Lecture 01 — 3단계: 더빙 합성 (번역 완료 후)
 
 ```bash
 export $(grep -v '^#' .env | xargs)
@@ -82,3 +98,7 @@ ct.process_csv('pipeline/video_list.csv')
 print(f'완료. 실패: {ct.failed_videos}')
 "
 ```
+
+> **배치 번역 워크플로**: 각 강의가 SUBTITLED 상태에서 자동 일시 중단됩니다.
+> `data/02_subtitles/` 의 `*_translation_input.md` 파일들을 Claude Code로 순서대로 번역 후
+> 파이프라인을 재실행하면 번역된 강의부터 더빙 합성이 재개됩니다.

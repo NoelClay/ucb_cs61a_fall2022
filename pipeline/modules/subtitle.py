@@ -55,69 +55,61 @@ def segments_to_srt(segments: List[Dict], include_speaker: bool = False) -> str:
     return "\n".join(blocks)
 
 
-def translate_subtitles_with_claude(
+def generate_translation_input(
     segments: List[Dict],
-    api_key: str,
-    cs_terms_path: str,
-    batch_size: int = 30,
-) -> List[Dict]:
-    import anthropic
+    video_id: str,
+    output_path: Path,
+    cs_terms_path: str = "pipeline/utils/cs_terms.yaml",
+):
+    """Claude Code가 번역할 수 있도록 구조화된 입력 파일을 생성한다."""
     import yaml
 
     with open(cs_terms_path, encoding="utf-8") as f:
         terms = yaml.safe_load(f)
     terms_str = "\n".join(f"- {k} → {v}" for k, v in terms.items())
 
-    client = anthropic.Anthropic(api_key=api_key)
-    translated = []
+    numbered = "\n".join(
+        f"{i + 1}. [{seg['speaker']}] {seg['text']}"
+        for i, seg in enumerate(segments)
+    )
 
-    for i in range(0, len(segments), batch_size):
-        batch = segments[i:i + batch_size]
-        numbered = "\n".join(
-            f"{j + 1}. [{seg['speaker']}] {seg['text']}"
-            for j, seg in enumerate(batch)
-        )
-        prompt = f"""다음 CS61A 강의 자막을 한국어로 번역하세요.
+    content = f"""# {video_id} 한국어 번역 요청
 
-규칙:
-1. 기술 용어는 아래 사전을 우선 참고하세요:
+## CS61A 용어 사전
 {terms_str}
 
+## 번역 규칙
+1. 기술 용어는 위 사전을 우선 참고하세요
 2. 코드, 변수명, 함수명은 번역하지 말고 백틱으로 감싸세요 (예: `x = 5`)
 3. 자연스러운 한국어 설명체로 번역하세요 (존댓말, 딱딱하지 않게)
-4. 번호와 화자 태그는 그대로 유지하세요
+4. 번호와 화자 태그 [SPEAKER_XX]는 그대로 유지하세요
+5. 한 줄에 한 항목만 출력하세요
 
-자막:
+## 영어 자막 목록 (총 {len(segments)}개)
 {numbered}
 
-번역 결과를 같은 번호 형식으로 출력하세요."""
+## 번역 완료 후
+아래 경로에 한국어 SRT 파일을 저장하세요:
+`data/02_subtitles/{video_id}_ko.srt`
 
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=4096,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        translations = _parse_numbered_translations(
-            response.content[0].text, len(batch)
-        )
-        for j, seg in enumerate(batch):
-            new_seg = dict(seg)
-            new_seg["text"] = translations[j] if j < len(translations) else seg["text"]
-            translated.append(new_seg)
-        logger.info(f"[TRANSLATED] batch {i // batch_size + 1}: {len(batch)} segments")
+형식 예시:
+```
+1
+00:00:00,000 --> 00:00:03,200
+[SPEAKER_00]
+CS61A에 오신 것을 환영합니다.
 
-    return translated
+2
+00:00:03,500 --> 00:00:06,000
+[SPEAKER_00]
+오늘은 함수에 대해 이야기하겠습니다.
+```
+"""
 
-
-def _parse_numbered_translations(text: str, expected: int) -> List[str]:
-    lines = []
-    for line in text.strip().split("\n"):
-        m = re.match(r"^\d+\.\s*(?:\[.*?\])?\s*(.+)$", line.strip())
-        if m:
-            lines.append(m.group(1).strip())
-    while len(lines) < expected:
-        lines.append("")
-    return lines
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(content, encoding="utf-8")
+    logger.info(f"[TRANSLATION INPUT] {output_path.name} ({len(segments)} segments)")
 
 
 def save_srt(srt_content: str, output_path: Path):

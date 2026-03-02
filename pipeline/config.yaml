@@ -19,25 +19,18 @@ subtitle:
 
 tts:
   timing_tolerance: 0.25
-  default_voice: "ko-KR-Neural2-C"
+  default_voice: "ko-KR-SunHiNeural"
   speakers:
     SPEAKER_00:
-      voice: "ko-KR-Neural2-C"
+      voice: "ko-KR-SunHiNeural"
       speaking_rate: 0.95
-      pitch: -1.0
     SPEAKER_01:
-      voice: "ko-KR-Neural2-B"
+      voice: "ko-KR-InJoonNeural"
       speaking_rate: 1.0
-      pitch: 0.0
     SPEAKER_UNKNOWN:
-      voice: "ko-KR-Neural2-A"
+      voice: "ko-KR-SunHiNeural"
       speaking_rate: 1.05
-      pitch: 1.0
 
 audio:
   vocals_lufs: -18
   bgm_lufs: -25
-
-cost:
-  tts_per_million_chars: 16.0
-  claude_per_million_tokens: 3.0

@@ -13,6 +13,10 @@ from pipeline.utils.state_manager import StateManager
 logger = get_logger("control_tower")
 
 
+class TranslationPendingError(Exception):
+    """한국어 자막 번역이 완료될 때까지 파이프라인을 일시 중단한다."""
+
+
 class ControlTower:
     def __init__(self, config_path: str, data_dir: Path = None):
         with open(config_path, encoding="utf-8") as f:
@@ -41,10 +45,11 @@ class ControlTower:
             model=self.config["whisperx"]["model"],
         )
 
-    def run_subtitle(self, video_id: str) -> List[Dict]:
+    def run_subtitle(self, video_id: str):
+        """영어 SRT 생성 + Claude Code 번역 입력 파일 생성."""
         from pipeline.modules.subtitle import (
             merge_segments, segments_to_srt,
-            translate_subtitles_with_claude, save_srt,
+            generate_translation_input, save_srt,
         )
         transcript = json.loads(
             (self.data_dir / "01_transcripts" / f"{video_id}.json").read_text()
@@ -58,15 +63,16 @@ class ControlTower:
         en_srt = segments_to_srt(merged, include_speaker=True)
         save_srt(en_srt, self.data_dir / "02_subtitles" / f"{video_id}_en.srt")
 
-        ko_segments = translate_subtitles_with_claude(
+        generate_translation_input(
             merged,
-            api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+            video_id=video_id,
+            output_path=self.data_dir / "02_subtitles" / f"{video_id}_translation_input.md",
             cs_terms_path="pipeline/utils/cs_terms.yaml",
-            batch_size=self.config["subtitle"]["batch_size"],
         )
-        ko_srt = segments_to_srt(ko_segments, include_speaker=True)
-        save_srt(ko_srt, self.data_dir / "02_subtitles" / f"{video_id}_ko.srt")
-        return ko_segments
+        logger.info(
+            f"[SUBTITLE] 영어 자막 완료. "
+            f"번역 입력 파일: data/02_subtitles/{video_id}_translation_input.md"
+        )
 
     def run_audio_edit(self, video_id: str):
         from pipeline.modules.audio_edit import extract_audio, separate_audio
@@ -119,10 +125,27 @@ class ControlTower:
             self.run_transcribe(video_id)
             sm.set_state(video_id, "TRANSCRIBED")
 
-        ko_segments = None
         if sm.is_before(video_id, "SUBTITLED"):
-            ko_segments = self.run_subtitle(video_id)
+            self.run_subtitle(video_id)
             sm.set_state(video_id, "SUBTITLED")
+
+        # ── Translation handoff ──────────────────────────────────────────────
+        # Claude Code가 translation_input.md 를 읽고 ko.srt 를 생성한다.
+        # 파일이 없으면 파이프라인을 일시 중단하고 사용자에게 안내한다.
+        if sm.is_before(video_id, "TRANSLATED"):
+            ko_srt = self.data_dir / "02_subtitles" / f"{video_id}_ko.srt"
+            if not ko_srt.exists():
+                input_file = self.data_dir / "02_subtitles" / f"{video_id}_translation_input.md"
+                logger.info(
+                    f"\n{'='*60}\n"
+                    f"[TRANSLATION PENDING] {video_id}\n"
+                    f"  번역 입력 파일: {input_file}\n"
+                    f"  Claude Code에서 번역 후 저장: {ko_srt}\n"
+                    f"  저장 완료 후 파이프라인 재실행\n"
+                    f"{'='*60}"
+                )
+                raise TranslationPendingError(f"{video_id}: 한국어 자막 번역 대기중")
+            sm.set_state(video_id, "TRANSLATED")
 
         if sm.is_before(video_id, "AUDIO_EDITED"):
             self.run_audio_edit(video_id)
@@ -130,8 +153,7 @@ class ControlTower:
 
         dubbed_chunks = None
         if sm.is_before(video_id, "DUBBED"):
-            if ko_segments is None:
-                ko_segments = self._load_ko_segments(video_id)
+            ko_segments = self._load_ko_segments(video_id)
             dubbed_chunks = self.run_tts_dub(video_id, ko_segments)
             sm.set_state(video_id, "DUBBED")
 
@@ -149,6 +171,8 @@ class ControlTower:
                 continue
             try:
                 self.process_video(item["video_id"], item["bilibili_url"])
+            except TranslationPendingError as e:
+                logger.info(f"[PENDING] {item['video_id']}: {e}")
             except Exception as e:
                 logger.error(f"[FAIL] {item['video_id']}: {e}")
                 self.failed_videos.append(item["video_id"])
@@ -161,7 +185,6 @@ class ControlTower:
     # ── Helpers ──────────────────────────────────────────────────────────────
 
     def _load_ko_segments(self, video_id: str) -> List[Dict]:
-        from pipeline.modules.subtitle import _parse_numbered_translations
         srt_path = self.data_dir / "02_subtitles" / f"{video_id}_ko.srt"
         if not srt_path.exists():
             return []

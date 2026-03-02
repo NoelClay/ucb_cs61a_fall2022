@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 
 def test_chunk_filename_format():
@@ -31,40 +31,43 @@ def test_calculate_speed_ratio():
     assert abs(ratio - 1.25) < 0.001
 
 
+def test_rate_to_str():
+    from pipeline.modules.tts_dub import _rate_to_str
+    assert _rate_to_str(1.0) == "+0%"
+    assert _rate_to_str(0.95) == "-5%"
+    assert _rate_to_str(1.1) == "+10%"
+
+
 def test_synthesize_chunk_writes_file(tmp_path):
     from pipeline.modules.tts_dub import synthesize_chunk
 
-    fake_audio_bytes = b"RIFF" + b"\x00" * 36
+    fake_mp3 = b"\xff\xe3" + b"\x00" * 100
+    fake_wav = b"RIFF" + b"\x00" * 36
 
-    mock_response = MagicMock()
-    mock_response.audio_content = fake_audio_bytes
+    async def fake_save(path):
+        Path(path).write_bytes(fake_mp3)
 
-    mock_client = MagicMock()
-    mock_client.synthesize_speech.return_value = mock_response
+    mock_communicate = MagicMock()
+    mock_communicate.save = fake_save
 
-    mock_tts = MagicMock()
-    mock_tts.TextToSpeechClient.return_value = mock_client
-    mock_tts.AudioEncoding.LINEAR16 = "LINEAR16"
+    mock_edge_tts = MagicMock()
+    mock_edge_tts.Communicate.return_value = mock_communicate
 
-    mock_google_cloud = MagicMock()
-    mock_google_cloud.texttospeech = mock_tts
-
-    mock_google = MagicMock()
-    mock_google.cloud = mock_google_cloud
+    def fake_mp3_to_wav(mp3_path, wav_path):
+        wav_path.write_bytes(fake_wav)
 
     out = tmp_path / "chunk_0001.wav"
-    with patch.dict("sys.modules", {
-        "google": mock_google,
-        "google.cloud": mock_google_cloud,
-        "google.cloud.texttospeech": mock_tts,
-    }):
+    with patch.dict("sys.modules", {"edge_tts": mock_edge_tts}), \
+         patch("pipeline.modules.tts_dub._mp3_to_wav", side_effect=fake_mp3_to_wav):
         synthesize_chunk(
             text="안녕하세요",
             output_path=out,
-            voice_name="ko-KR-Neural2-C",
+            voice_name="ko-KR-SunHiNeural",
             speaking_rate=0.95,
-            pitch=-1.0,
+        )
+        mock_edge_tts.Communicate.assert_called_once_with(
+            "안녕하세요", "ko-KR-SunHiNeural", rate="-5%"
         )
 
     assert out.exists()
-    assert out.read_bytes() == fake_audio_bytes
+    assert out.read_bytes() == fake_wav

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 SAMPLE_SEGMENTS = [
     {"start": 0.0, "end": 3.2, "text": "Welcome to CS61A.", "speaker": "SPEAKER_00"},
     {"start": 3.5, "end": 6.0, "text": "Today we talk about functions.", "speaker": "SPEAKER_00"},
@@ -79,3 +81,40 @@ def test_save_srt_creates_file(tmp_path):
     save_srt("1\n00:00:00,000 --> 00:00:01,000\nHello\n", out)
     assert out.exists()
     assert "Hello" in out.read_text()
+
+
+def test_generate_translation_input_creates_file(tmp_path):
+    from pipeline.modules.subtitle import generate_translation_input
+
+    fake_terms = {"function": "함수", "recursion": "재귀"}
+    with patch("builtins.open", side_effect=lambda path, **kw: (
+        __import__("io").StringIO(__import__("yaml").dump(fake_terms))
+        if "cs_terms" in str(path) else open(path, **kw)
+    )):
+        out = tmp_path / "lecture_01_translation_input.md"
+        generate_translation_input(
+            SAMPLE_SEGMENTS,
+            video_id="lecture_01",
+            output_path=out,
+            cs_terms_path="pipeline/utils/cs_terms.yaml",
+        )
+
+    assert out.exists()
+    content = out.read_text()
+    assert "lecture_01" in content
+    assert "SPEAKER_00" in content
+    assert "Welcome to CS61A." in content
+    assert "번역 완료 후" in content
+
+
+def test_generate_translation_input_uses_real_cs_terms(tmp_path):
+    from pipeline.modules.subtitle import generate_translation_input
+    out = tmp_path / "input.md"
+    generate_translation_input(
+        SAMPLE_SEGMENTS,
+        video_id="lecture_01",
+        output_path=out,
+        cs_terms_path="pipeline/utils/cs_terms.yaml",
+    )
+    content = out.read_text()
+    assert "함수" in content  # cs_terms.yaml: function → 함수

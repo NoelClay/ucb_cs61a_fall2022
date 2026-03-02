@@ -22,33 +22,43 @@ def calculate_speed_ratio(original: float, generated: float) -> float:
     return generated / original
 
 
+def _rate_to_str(speaking_rate: float) -> str:
+    """float 속도(1.0 기준)를 edge-tts rate 문자열로 변환."""
+    pct = int(round((speaking_rate - 1.0) * 100))
+    return f"{'+' if pct >= 0 else ''}{pct}%"
+
+
+def _mp3_to_wav(mp3_path: Path, wav_path: Path):
+    """ffmpeg으로 MP3 → WAV 24kHz mono 변환."""
+    import ffmpeg
+    ffmpeg.input(str(mp3_path)).output(
+        str(wav_path), ar=24000, ac=1
+    ).run(overwrite_output=True, quiet=True)
+
+
 def synthesize_chunk(
     text: str,
     output_path: Path,
     voice_name: str,
     speaking_rate: float = 1.0,
-    pitch: float = 0.0,
+    pitch: float = 0.0,  # 인터페이스 호환용 (edge-tts에서는 사용 안 함)
 ):
-    from google.cloud import texttospeech
+    import asyncio
+    import edge_tts
 
-    client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(text=text)
-    voice = texttospeech.VoiceSelectionParams(
-        language_code="ko-KR",
-        name=voice_name,
-    )
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.LINEAR16,
-        speaking_rate=speaking_rate,
-        pitch=pitch,
-        sample_rate_hertz=24000,
-    )
-    response = client.synthesize_speech(
-        input=synthesis_input, voice=voice, audio_config=audio_config
-    )
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_bytes(response.audio_content)
+
+    rate_str = _rate_to_str(speaking_rate)
+    mp3_path = output_path.with_suffix(".mp3")
+
+    async def _run():
+        communicate = edge_tts.Communicate(text, voice_name, rate=rate_str)
+        await communicate.save(str(mp3_path))
+
+    asyncio.run(_run())
+    _mp3_to_wav(mp3_path, output_path)
+    mp3_path.unlink(missing_ok=True)
     logger.info(f"[TTS] {output_path.name}")
 
 
@@ -91,7 +101,7 @@ def dub_segments(
             synthesize_chunk(
                 text=seg["text"],
                 output_path=chunk_path,
-                voice_name=cfg.get("voice", "ko-KR-Neural2-C"),
+                voice_name=cfg.get("voice", "ko-KR-SunHiNeural"),
                 speaking_rate=cfg.get("speaking_rate", 1.0),
                 pitch=cfg.get("pitch", 0.0),
             )
