@@ -5,7 +5,7 @@
 ## 📁 구조
 
 ```
-나의과제/
+my-assignments/
 ├── hw1/
 │   ├── solution.py
 │   └── test_results.txt
