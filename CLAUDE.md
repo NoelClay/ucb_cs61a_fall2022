@@ -97,3 +97,30 @@ If you need to:
 - **Check gem versions**: Run `bundle show`
 
 Be cautious with major version upgrades, especially Jekyll and GitHub Pages, as they may affect builds.
+
+## Pipeline — Model Routing
+
+The dubbing pipeline (`pipeline/`) uses a three-tier model assignment:
+
+| 역할 | 모델 | 이유 |
+|------|------|------|
+| 메인 세션 / superpowers 스킬 | Opus | 고수준 설계·판단 |
+| execute-plans subagent (구현·리뷰) | Sonnet | 코드 작업 균형 |
+| 한국어 SRT 번역 | Haiku | 반복 번역 비용 절감 |
+
+### 한국어 SRT 번역 처리
+
+파이프라인이 `TranslationPendingError`를 발생시키면 (번역 대기 상태):
+1. `data/02_subtitles/{video_id}_translation_input.md` 파일이 생성되어 있음
+2. **`korean-srt-translator` subagent (Haiku)를 반드시 사용하여 번역한다**:
+
+```
+Agent tool (korean-srt-translator):
+  description: "Translate {video_id} subtitles to Korean"
+  prompt: |
+    data/02_subtitles/{video_id}_translation_input.md 파일을 읽고
+    한국어로 번역하여 data/02_subtitles/{video_id}_ko.srt 에 저장하세요.
+    타임스탬프는 data/02_subtitles/{video_id}_en.srt 에서 가져오세요.
+```
+
+3. ko.srt 저장 완료 후 파이프라인을 재실행한다.
