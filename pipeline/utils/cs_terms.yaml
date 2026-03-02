@@ -1,0 +1,27 @@
+function: 함수
+recursion: 재귀
+closure: 클로저
+environment: 환경
+frame: 프레임
+binding: 바인딩
+higher-order function: 고차 함수
+tail call: 꼬리 호출
+data abstraction: 데이터 추상화
+object-oriented: 객체지향
+inheritance: 상속
+polymorphism: 다형성
+interpreter: 인터프리터
+linked list: 연결 리스트
+tree: 트리
+mutation: 변이
+iteration: 반복
+generator: 제너레이터
+decorator: 데코레이터
+lambda: 람다
+scope: 스코프
+memoization: 메모이제이션
+stream: 스트림
+promise: 프로미스
+thunk: 청크
+tail recursion: 꼬리 재귀
+accumulator: 누산기
