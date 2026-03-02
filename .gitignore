@@ -54,13 +54,25 @@ dkms.conf
 # debug information files
 *.dwo
 
-# Pipeline
+# Pipeline — secrets
 .env
 pipeline/gcp_key.json
+
+# Pipeline — local runtime (reinstall via setup.sh on new machines)
 pipeline/venv/
+pipeline/packages/
+
+# Pipeline — data & model files (large binaries, not version-controlled)
 data/
 models/
 logs/
+
+# Python bytecode
 __pycache__/
 *.pyc
+*.pyo
+
+# Test & tool caches
 .pytest_cache/
+.mypy_cache/
+*.egg-info/
