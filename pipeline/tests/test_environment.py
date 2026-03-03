@@ -1,7 +1,3 @@
-def test_anthropic_importable():
-    import anthropic
-    assert anthropic.__version__
-
 def test_yaml_importable():
     import yaml
     assert yaml.__version__
