@@ -14,7 +14,7 @@
 
 ```bash
 # 모든 스크립트는 이 변수를 기준으로 경로를 구성한다
-USB_ROOT=/media/namykim/391B-C6F7/workspace/c61a
+USB_ROOT=/path/to/your/workspace
 PIPELINE_DIR=$USB_ROOT/pipeline
 DATA_DIR=$USB_ROOT/data
 MODELS_DIR=$USB_ROOT/models
@@ -127,7 +127,7 @@ cost:
 
 ```bash
 # .env.example (복사해서 .env로 사용, git에 .env는 커밋하지 말 것)
-USB_ROOT=/media/namykim/391B-C6F7/workspace/c61a
+USB_ROOT=/path/to/your/workspace
 GOOGLE_APPLICATION_CREDENTIALS=${USB_ROOT}/pipeline/gcp_key.json
 ANTHROPIC_API_KEY=sk-ant-...
 HF_TOKEN=hf_...

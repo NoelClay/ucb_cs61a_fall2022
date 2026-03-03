@@ -9,7 +9,7 @@
 ## 런타임 패키지 설치
 
 ```bash
-cd /media/namykim/391B-C6F7/workspace/c61a
+cd /path/to/your/workspace
 pip install --target=pipeline/packages --no-cache-dir \
     -r pipeline/requirements-runtime.txt
 ```

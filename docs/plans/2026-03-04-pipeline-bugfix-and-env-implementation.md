@@ -223,7 +223,7 @@ remove test_anthropic_importable test."
 Remove `ANTHROPIC_API_KEY` line. New content:
 
 ```
-USB_ROOT=/media/namykim/391B-C6F7/workspace/c61a
+USB_ROOT=/path/to/your/workspace
 
 HF_TOKEN=hf_여기에_HuggingFace_토큰_입력
 
@@ -236,7 +236,7 @@ SPLEETER_MODEL_DIR=${USB_ROOT}/models/spleeter
 Remove `GOOGLE_APPLICATION_CREDENTIALS` and `ANTHROPIC_API_KEY`. New content:
 
 ```
-USB_ROOT=/media/namykim/391B-C6F7/workspace/c61a
+USB_ROOT=/path/to/your/workspace
 
 HF_TOKEN=hf_여기에_HuggingFace_토큰_입력
 
@@ -265,14 +265,14 @@ git commit -m "chore: remove GCP and Anthropic entries from .env.example"
 **Step 1: Download ffmpeg static binary**
 
 ```bash
-mkdir -p /media/namykim/391B-C6F7/workspace/c61a/pipeline/bin
+mkdir -p /path/to/your/workspace/pipeline/bin
 cd /tmp
 wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
 tar xf ffmpeg-release-amd64-static.tar.xz
-cp ffmpeg-*-amd64-static/ffmpeg /media/namykim/391B-C6F7/workspace/c61a/pipeline/bin/ffmpeg
-cp ffmpeg-*-amd64-static/ffprobe /media/namykim/391B-C6F7/workspace/c61a/pipeline/bin/ffprobe
-chmod +x /media/namykim/391B-C6F7/workspace/c61a/pipeline/bin/ffmpeg
-chmod +x /media/namykim/391B-C6F7/workspace/c61a/pipeline/bin/ffprobe
+cp ffmpeg-*-amd64-static/ffmpeg /path/to/your/workspace/pipeline/bin/ffmpeg
+cp ffmpeg-*-amd64-static/ffprobe /path/to/your/workspace/pipeline/bin/ffprobe
+chmod +x /path/to/your/workspace/pipeline/bin/ffmpeg
+chmod +x /path/to/your/workspace/pipeline/bin/ffprobe
 rm -rf ffmpeg-*-amd64-static* ffmpeg-release-amd64-static.tar.xz
 ```
 
@@ -313,7 +313,7 @@ pipeline/bin/
 **Step 4: Verify ffmpeg works**
 
 ```bash
-/media/namykim/391B-C6F7/workspace/c61a/pipeline/bin/ffmpeg -version | head -1
+/path/to/your/workspace/pipeline/bin/ffmpeg -version | head -1
 ```
 
 Expected: `ffmpeg version N.N-static ...`
@@ -335,7 +335,7 @@ Add pipeline/bin/ to .gitignore (binary not committed)."
 **Step 1: Install**
 
 ```bash
-cd /media/namykim/391B-C6F7/workspace/c61a
+cd /path/to/your/workspace
 pip install --target=pipeline/packages --no-cache-dir -r pipeline/requirements-runtime.txt
 ```
 
