@@ -195,7 +195,7 @@ class ControlTower:
             parts = block.strip().split("\n")
             if len(parts) >= 3:
                 times = parts[1].split(" --> ")
-                # parts[2]가 [SPEAKER_XX] 패턴이면 speaker 추출, 아니면 SPEAKER_UNKNOWN
+                # WhisperX produces SPEAKER_00 format (underscore). \w covers [A-Za-z0-9_].
                 speaker_match = re.match(r"^\[(\w+)\]$", parts[2].strip())
                 if speaker_match:
                     speaker = speaker_match.group(1)
