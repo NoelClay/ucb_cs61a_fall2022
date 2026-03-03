@@ -61,6 +61,7 @@ pipeline/gcp_key.json
 # Pipeline — local runtime (reinstall via setup.sh on new machines)
 pipeline/venv/
 pipeline/packages/
+pipeline/bin/
 
 # Pipeline — data & model files (large binaries, not version-controlled)
 data/
