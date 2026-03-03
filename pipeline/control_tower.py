@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import re
 import shutil
 from pathlib import Path
 from typing import List, Dict
@@ -188,17 +189,25 @@ class ControlTower:
         srt_path = self.data_dir / "02_subtitles" / f"{video_id}_ko.srt"
         if not srt_path.exists():
             return []
-        lines = srt_path.read_text(encoding="utf-8").strip().split("\n\n")
+        blocks = srt_path.read_text(encoding="utf-8").strip().split("\n\n")
         segments = []
-        for block in lines:
+        for block in blocks:
             parts = block.strip().split("\n")
             if len(parts) >= 3:
                 times = parts[1].split(" --> ")
+                # parts[2]가 [SPEAKER_XX] 패턴이면 speaker 추출, 아니면 SPEAKER_UNKNOWN
+                speaker_match = re.match(r"^\[(\w+)\]$", parts[2].strip())
+                if speaker_match:
+                    speaker = speaker_match.group(1)
+                    text = " ".join(parts[3:])
+                else:
+                    speaker = "SPEAKER_UNKNOWN"
+                    text = " ".join(parts[2:])
                 segments.append({
                     "start": _srt_time_to_sec(times[0]),
                     "end": _srt_time_to_sec(times[1]),
-                    "text": " ".join(parts[2:]),
-                    "speaker": "SPEAKER_UNKNOWN",
+                    "text": text.strip(),
+                    "speaker": speaker,
                 })
         return segments
 

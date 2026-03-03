@@ -118,3 +118,57 @@ def test_process_all_does_not_fail_on_translation_pending(tmp_path):
 
     # TranslationPendingError는 failed_videos에 추가되지 않는다
     assert "lecture_01" not in ct.failed_videos
+
+
+def test_load_ko_segments_parses_speaker_tag(tmp_path):
+    from pipeline.control_tower import ControlTower
+
+    srt_dir = tmp_path / "02_subtitles"
+    srt_dir.mkdir(parents=True)
+    (srt_dir / "lecture_01_ko.srt").write_text(
+        "1\n00:00:00,000 --> 00:00:03,200\n[SPEAKER_00]\nCS61A에 오신 것을 환영합니다.\n\n"
+        "2\n00:00:03,500 --> 00:00:06,000\n[SPEAKER_01]\n오늘은 함수에 대해 이야기하겠습니다.\n",
+        encoding="utf-8",
+    )
+    ct = ControlTower(config_path="pipeline/config.yaml", data_dir=tmp_path)
+    segments = ct._load_ko_segments("lecture_01")
+
+    assert len(segments) == 2
+    assert segments[0]["speaker"] == "SPEAKER_00"
+    assert segments[1]["speaker"] == "SPEAKER_01"
+    assert "[SPEAKER" not in segments[0]["text"]
+    assert "[SPEAKER" not in segments[1]["text"]
+    assert "CS61A에 오신 것을 환영합니다." in segments[0]["text"]
+
+
+def test_load_ko_segments_no_speaker_tag(tmp_path):
+    from pipeline.control_tower import ControlTower
+
+    srt_dir = tmp_path / "02_subtitles"
+    srt_dir.mkdir(parents=True)
+    (srt_dir / "lecture_01_ko.srt").write_text(
+        "1\n00:00:00,000 --> 00:00:03,200\n태그 없는 자막입니다.\n",
+        encoding="utf-8",
+    )
+    ct = ControlTower(config_path="pipeline/config.yaml", data_dir=tmp_path)
+    segments = ct._load_ko_segments("lecture_01")
+
+    assert len(segments) == 1
+    assert segments[0]["speaker"] == "SPEAKER_UNKNOWN"
+    assert segments[0]["text"] == "태그 없는 자막입니다."
+
+
+def test_load_ko_segments_timestamps_correct(tmp_path):
+    from pipeline.control_tower import ControlTower
+
+    srt_dir = tmp_path / "02_subtitles"
+    srt_dir.mkdir(parents=True)
+    (srt_dir / "lecture_01_ko.srt").write_text(
+        "1\n01:02:03,456 --> 01:02:06,789\n[SPEAKER_00]\n테스트\n",
+        encoding="utf-8",
+    )
+    ct = ControlTower(config_path="pipeline/config.yaml", data_dir=tmp_path)
+    segments = ct._load_ko_segments("lecture_01")
+
+    assert abs(segments[0]["start"] - 3723.456) < 0.01
+    assert abs(segments[0]["end"] - 3726.789) < 0.01
