@@ -1,5 +1,5 @@
 # 개발 필수 (코드 작성 및 테스트용)
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 pyyaml==6.0.1
 pydantic==2.7.1
 pytest==9.0.3
